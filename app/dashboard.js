@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  StyleSheet, 
-  Image, 
-  ScrollView 
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Image,
+  ScrollView,
+  Modal,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
@@ -13,120 +14,239 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 const HomeScreen = () => {
   const router = useRouter();
   const [language, setLanguage] = useState("EN");
-
-  // Toggle Language
-  const toggleLanguage = () => {
-    setLanguage((prevLang) => (prevLang === "EN" ? "TL" : "EN"));
-  };
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header */}
-          {/* Language Toggle (Top Right) */}
-          <TouchableOpacity style={styles.languageToggle} onPress={toggleLanguage}>
-            <MaterialIcons name="g-translate" size={24} color="#FFF" />
-          </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.languageToggle}
+          onPress={() => setShowLanguageModal(true)}
+        >
+          <MaterialIcons name="g-translate" size={24} color="#FFF" />
+        </TouchableOpacity>
 
-          <View style={styles.headerContent}>
-            {/* Logo */}
-            <Image source={require("../assets/logo.png")} style={styles.logo} />
-
-            {/* Title (Below Logo) */}
-            <Text style={styles.headerTitle}>
-              {language === "EN"
-                ? "Guard Your Crops,"
-                : "Bantayan ang Iyong Pananim, "}
-            </Text>
-            <Text style={styles.headerTitle}>
-              {language === "EN"
-                ? "Grow with Confidence!"
-                : " Lumago nang May Kumpiyansa!"}
-            </Text>
-          </View>
-
-        {/* Content */}
-        <View style={styles.header}>
-        <View style={styles.content}>
-          {/* Corn Card */}
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => router.push({ pathname: "/camera", params: { crop: "Corn" } })}
-          >
-            <View style={styles.cardContent}>
-              <Image source={require("../assets/mais.jpg")} style={styles.cardLogo} />
-              <View style={styles.cardRight}>
-                <Text style={styles.cardTitle}>{language === "EN" ? "Corn" : "Mais"}</Text>
-                <Text style={styles.cardSubtitle}>
-                  {language === "EN"
-                    ? "Capture image of a leaf to know more about your crop's condition"
-                    : "Kuhanan ng larawan ang dahon upang malaman ang kalagayan ng iyong pananim"}
-                </Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          {/* Rice Card */}
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => router.push({ pathname: "/camera", params: { crop: "Rice" } })}
-          >
-            <View style={styles.cardContent}>
-              <Image source={require("../assets/palay.jpg")} style={styles.cardLogo} />
-              <View style={styles.cardRight}>
-                <Text style={styles.cardTitle}>{language === "EN" ? "Rice" : "Palay"}</Text>
-                <Text style={styles.cardSubtitle}>
-                  {language === "EN"
-                    ? "Capture image of a leaf to know more about your crop's condition"
-                    : "Kuhanan ng larawan ang dahon upang malaman ang kalagayan ng iyong pananim"}
-                </Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-
-          {/* Tomato Card */}
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => router.push({ pathname: "/camera", params: { crop: "Tomato" } })}
-          >
-            <View style={styles.cardContent}>
-              <Image source={require("../assets/kamatis.jpg")} style={styles.cardLogo} />
-              <View style={styles.cardRight}>
-                <Text style={styles.cardTitle}>{language === "EN" ? "Tomato" : "Kamatis"}</Text>
-                <Text style={styles.cardSubtitle}>
-                  {language === "EN"
-                    ? "Capture image of a leaf to know more about your crop's condition"
-                    : "Kuhanan ng larawan ang dahon upang malaman ang kalagayan ng iyong pananim"}
-                </Text>
-              </View>
-            </View>
-          </TouchableOpacity>
+        <View style={styles.headerContent}>
+          <Image source={require("../assets/logo.png")} style={styles.logo} />
+          <Text style={styles.headerTitle}>
+            {language === "EN"
+              ? "Guard Your Crops,"
+              : "Bantayan ang Iyong Pananim,"}
+          </Text>
+          <Text style={styles.headerTitle}>
+            {language === "EN"
+              ? "Grow with Confidence!"
+              : " Lumago nang May Kumpiyansa!"}
+          </Text>
         </View>
-      </View>
+
+        <View style={styles.header}>
+          <View style={styles.content}>
+            {/* Corn Card */}
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() =>
+                router.push({ pathname: "/camera", params: { crop: "Corn" } })
+              }
+            >
+              <View style={styles.cardContent}>
+                <Image
+                  source={require("../assets/mais.jpg")}
+                  style={styles.cardLogo}
+                />
+                <View style={styles.cardRight}>
+                  <Text style={styles.cardTitle}>
+                    {language === "EN" ? "Corn" : "Mais"}
+                  </Text>
+                  <Text style={styles.cardSubtitle}>
+                    {language === "EN"
+                      ? "Capture image of a leaf to know more about your crop's condition"
+                      : "Kuhanan ng larawan ang dahon upang malaman ang kalagayan ng iyong pananim"}
+                  </Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+
+            {/* Rice Card */}
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() =>
+                router.push({ pathname: "/camera", params: { crop: "Rice" } })
+              }
+            >
+              <View style={styles.cardContent}>
+                <Image
+                  source={require("../assets/palay.jpg")}
+                  style={styles.cardLogo}
+                />
+                <View style={styles.cardRight}>
+                  <Text style={styles.cardTitle}>
+                    {language === "EN" ? "Rice" : "Palay"}
+                  </Text>
+                  <Text style={styles.cardSubtitle}>
+                    {language === "EN"
+                      ? "Capture image of a leaf to know more about your crop's condition"
+                      : "Kuhanan ng larawan ang dahon upang malaman ang kalagayan ng iyong pananim"}
+                  </Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+
+            {/* Tomato Card */}
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() =>
+                router.push({ pathname: "/camera", params: { crop: "Tomato" } })
+              }
+            >
+              <View style={styles.cardContent}>
+                <Image
+                  source={require("../assets/kamatis.jpg")}
+                  style={styles.cardLogo}
+                />
+                <View style={styles.cardRight}>
+                  <Text style={styles.cardTitle}>
+                    {language === "EN" ? "Tomato" : "Kamatis"}
+                  </Text>
+                  <Text style={styles.cardSubtitle}>
+                    {language === "EN"
+                      ? "Capture image of a leaf to know more about your crop's condition"
+                      : "Kuhanan ng larawan ang dahon upang malaman ang kalagayan ng iyong pananim"}
+                  </Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
       </ScrollView>
 
-      {/* Bottom Navigation Bar */}
+      {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
-        <TouchableOpacity onPress={() => router.push("/history")} style={styles.navItem}>
+        <TouchableOpacity
+          onPress={() => router.push("/history")}
+          style={styles.navItem}
+        >
           <Ionicons name="time" size={24} color="#808080" />
-          <Text style={styles.navText}>{language === "EN" ? "History" : "Kasaysayan"}</Text>
+          <Text style={styles.navText}>
+            {language === "EN" ? "History" : "Kasaysayan"}
+          </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push("/review")} style={styles.navItem}>
+        <TouchableOpacity
+          onPress={() => router.push("/review")}
+          style={styles.navItem}
+        >
           <Ionicons name="star" size={24} color="#808080" />
-          <Text style={styles.navText}>{language === "EN" ? "Ratings" : "Rating"}</Text>
+          <Text style={styles.navText}>
+            {language === "EN" ? "Ratings" : "Rating"}
+          </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push("/about")} style={styles.navItem}>
+        <TouchableOpacity
+          onPress={() => router.push("/about")}
+          style={styles.navItem}
+        >
           <Ionicons name="information-circle" size={24} color="#808080" />
-          <Text style={styles.navText}>{language === "EN" ? "About" : "Tungkol"}</Text>
+          <Text style={styles.navText}>
+            {language === "EN" ? "About" : "Tungkol"}
+          </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push("/login")} style={styles.navItem}>
+        <TouchableOpacity
+          onPress={() => setShowLogoutModal(true)}
+          style={styles.navItem}
+        >
           <Ionicons name="log-out" size={24} color="#808080" />
-          <Text style={styles.navText}>{language === "EN" ? "Logout" : "Logout"}</Text>
+          <Text style={styles.navText}>
+            {language === "EN" ? "Logout" : "Logout"}
+          </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Logout Modal */}
+      <Modal
+        transparent={true}
+        animationType="fade"
+        visible={showLogoutModal}
+        onRequestClose={() => setShowLogoutModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>
+              {language === "EN"
+                ? "Are you sure you want to logout?"
+                : "Sigurado ka bang gusto mong mag-logout?"}
+            </Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, { backgroundColor: "#d4af37" }]}
+                onPress={() => {
+                  setShowLogoutModal(false);
+                  router.replace("/login");
+                }}
+              >
+                <Text style={styles.modalButtonText}>
+                  {language === "EN" ? "Yes" : "Oo"}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, { backgroundColor: "#ccc" }]}
+                onPress={() => setShowLogoutModal(false)}
+              >
+                <Text style={styles.modalButtonText}>
+                  {language === "EN" ? "No" : "Hindi"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Language Selection Modal */}
+      <Modal
+        transparent={true}
+        animationType="fade"
+        visible={showLanguageModal}
+        onRequestClose={() => setShowLanguageModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContainer, { padding: 30 }]}>
+            <Text style={styles.modalTitle}>
+              Please select your preferred language
+            </Text>
+
+            <TouchableOpacity
+              style={styles.languageOption}
+              onPress={() => {
+                setLanguage("EN");
+                setShowLanguageModal(false);
+              }}
+            >
+              <Image
+                source={require("../assets/us.jpg")}
+                style={styles.flagIcon}
+              />
+              <Text style={styles.languageText}>English (US)</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.languageOption}
+              onPress={() => {
+                setLanguage("TL");
+                setShowLanguageModal(false);
+              }}
+            >
+              <Image
+                source={require("../assets/ph.jpg")}
+                style={styles.flagIcon}
+              />
+              <Text style={styles.languageText}>Tagalog (PH)</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -139,22 +259,25 @@ const styles = StyleSheet.create({
     backgroundColor: "#C2A868",
     paddingTop: 45,
   },
+  scrollContent: {
+    paddingBottom: 80,
+  },
   header: {
     backgroundColor: "#ffffff",
-    height: '200%',
-    width: '100%',
-    marginTop: '10%',
+    height: "200%",
+    width: "100%",
+    marginTop: "10%",
     borderTopLeftRadius: 25,
     borderTopRightRadius: 25,
-  },
-  languageToggle: {
-    position: "absolute",
-    right: 25,
-    paddingTop: '4%',
   },
   headerContent: {
     flexDirection: "column",
     alignItems: "flex-start",
+  },
+  languageToggle: {
+    position: "absolute",
+    right: 25,
+    paddingTop: "4%",
   },
   logo: {
     width: 50,
@@ -169,14 +292,11 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     textAlign: "left",
     marginLeft: 35,
-    maxWidth: "90%", // Prevents overflow
+    maxWidth: "90%",
     fontFamily: "OpenSans",
     textShadowColor: "rgba(0, 0, 0, 0.3)",
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
-  },
-  scrollContent: {
-    paddingBottom: 80,
   },
   content: {
     alignItems: "center",
@@ -241,5 +361,63 @@ const styles = StyleSheet.create({
   navText: {
     fontSize: 12,
     marginTop: 3,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContainer: {
+    backgroundColor: "#fff",
+    padding: 25,
+    borderRadius: 20,
+    width: "80%",
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+    color: "#333",
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    marginHorizontal: 5,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  modalButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  languageOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 10,
+    width: "100%",
+  },
+  flagIcon: {
+    width: 40,
+    height: 30,
+    marginRight: 15,
+    resizeMode: "cover",
+    borderRadius: 5,
+  },
+  languageText: {
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
