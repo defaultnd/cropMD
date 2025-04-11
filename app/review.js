@@ -23,6 +23,11 @@ const FeedbackScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [selectedReview, setSelectedReview] = useState(null);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [reviewToDelete, setReviewToDelete] = useState(null);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [actionsModalVisible, setActionsModalVisible] = useState(false);
+  const [selectedReviewForActions, setSelectedReviewForActions] = useState(null);
   const inputRef = useRef(null);
   const router = useRouter();
 
@@ -80,46 +85,24 @@ const FeedbackScreen = () => {
   };
 
   const handleDeleteReview = (id) => {
-    Alert.alert(
-      '🗑️ Delete Review',
-      'This action cannot be undone.',
-      [
-        { 
-          text: '↩️ Keep',
-          style: 'cancel',
-        },
-        {
-          text: '🗑️ Delete',
-          onPress: () => {
-            const updatedReviews = reviews.filter((review) => review.id !== id);
-            setReviews(updatedReviews);
-            saveReviews(updatedReviews);
-            Alert.alert(
-              '✅ Success',
-              'Review deleted',
-              [{ text: 'OK' }],
-              { 
-                cancelable: true,
-                titleStyle: { fontFamily: 'OpenSans-Bold' },
-                messageStyle: { fontFamily: 'OpenSans' }
-              }
-            );
-          },
-          style: 'destructive',
-        },
-      ],
-      { 
-        cancelable: true,
-        titleStyle: { fontFamily: 'OpenSans-Bold' },
-        messageStyle: { fontFamily: 'OpenSans' }
-      }
-    );
+    setReviewToDelete(id);
+    setDeleteModalVisible(true);
+  };
+
+  const confirmDelete = () => {
+    const updatedReviews = reviews.filter((review) => review.id !== reviewToDelete);
+    setReviews(updatedReviews);
+    saveReviews(updatedReviews);
+    setDeleteModalVisible(false);
+    setReviewToDelete(null);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   };
 
   const handleEditReview = (review) => {
     setSelectedReview(review);
     setRating(review.rating);
     setFeedback(review.feedback);
+    setEditModalVisible(true);
   };
 
   const handleUpdateReview = () => {
@@ -134,18 +117,15 @@ const FeedbackScreen = () => {
       setSelectedReview(null);
       setRating(0);
       setFeedback('');
+      setEditModalVisible(false);
       Keyboard.dismiss();
-      Alert.alert(
-        '✅ Success',
-        'Review updated',
-        [{ text: 'OK' }],
-        { 
-          cancelable: true,
-          titleStyle: { fontFamily: 'OpenSans-Bold' },
-          messageStyle: { fontFamily: 'OpenSans' }
-        }
-      );
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
+  };
+
+  const handleReviewActions = (review) => {
+    setSelectedReviewForActions(review);
+    setActionsModalVisible(true);
   };
 
   const renderReview = ({ item }) => (
@@ -165,35 +145,10 @@ const FeedbackScreen = () => {
 
         {/* Three Dots Menu */}
         <TouchableOpacity
-          onPress={() =>
-            Alert.alert(
-              '✏️ Review Actions',
-              'Choose an action:',
-              [
-                {
-                  text: '📝 Edit',
-                  onPress: () => handleEditReview(item),
-                  style: 'default',
-                },
-                {
-                  text: '🗑️ Delete',
-                  onPress: () => handleDeleteReview(item.id),
-                  style: 'destructive',
-                },
-                {
-                  text: '❌ Cancel',
-                  style: 'cancel',
-                },
-              ],
-              { 
-                cancelable: true,
-                titleStyle: { fontFamily: 'OpenSans-Bold' },
-                messageStyle: { fontFamily: 'OpenSans' }
-              }
-            )
-          }
+          onPress={() => handleReviewActions(item)}
+          style={styles.actionsButton}
         >
-          <Ionicons name="ellipsis-vertical" size={20} color="#888" />
+          <Ionicons name="ellipsis-vertical" size={24} color="#888" />
         </TouchableOpacity>
       </View>
 
@@ -305,6 +260,170 @@ const FeedbackScreen = () => {
             </TouchableOpacity>
           </View>
         </View>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        visible={deleteModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDeleteModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalIconContainer}>
+              <Ionicons name="trash-bin" size={60} color="#FF4444" />
+            </View>
+            <Text style={styles.modalTitle}>Delete Review</Text>
+            <Text style={styles.modalText}>Are you sure you want to delete this review? This action cannot be undone.</Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setDeleteModalVisible(false)}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.deleteButton]}
+                onPress={confirmDelete}
+              >
+                <Text style={styles.modalButtonText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Edit Review Modal */}
+      <Modal
+        visible={editModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setEditModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalIconContainer}>
+              <Ionicons name="create" size={60} color="#C2A868" />
+            </View>
+            <Text style={styles.modalTitle}>Edit Review</Text>
+            <View style={styles.starsContainer}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity 
+                  key={star} 
+                  onPress={() => handleStarPress(star)}
+                  style={styles.starButton}
+                >
+                  <Ionicons
+                    name={star <= rating ? 'star' : 'star-outline'}
+                    size={45}
+                    color={star <= rating ? '#FFD700' : '#CCC'}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+            <Text style={styles.ratingText}>
+              {rating === 0 ? 'Tap a star to rate' :
+               rating === 1 ? 'Poor' :
+               rating === 2 ? 'Fair' :
+               rating === 3 ? 'Good' :
+               rating === 4 ? 'Very Good' : 'Excellent'}
+            </Text>
+            <TextInput
+              ref={inputRef}
+              style={styles.input}
+              placeholder="Tell us what you think..."
+              value={feedback}
+              onChangeText={setFeedback}
+              multiline
+              placeholderTextColor="#999"
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => {
+                  setEditModalVisible(false);
+                  setSelectedReview(null);
+                  setRating(0);
+                  setFeedback('');
+                }}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.updateButton]}
+                onPress={handleUpdateReview}
+                disabled={rating === 0}
+              >
+                <Text style={styles.modalButtonText}>Update</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Review Actions Modal */}
+      <Modal
+        visible={actionsModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setActionsModalVisible(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={() => setActionsModalVisible(false)}
+        >
+          <View style={styles.actionsModalContent}>
+            <View style={styles.actionsHeader}>
+              <Text style={styles.actionsTitle}>Review Actions</Text>
+              <TouchableOpacity 
+                onPress={() => setActionsModalVisible(false)}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.actionsList}>
+              <TouchableOpacity 
+                style={styles.actionItem}
+                onPress={() => {
+                  setActionsModalVisible(false);
+                  handleEditReview(selectedReviewForActions);
+                }}
+              >
+                <View style={[styles.actionIconContainer, { backgroundColor: 'rgba(194, 168, 104, 0.1)' }]}>
+                  <Ionicons name="create" size={24} color="#C2A868" />
+                </View>
+                <View style={styles.actionTextContainer}>
+                  <Text style={styles.actionTitle}>Edit Review</Text>
+                  <Text style={styles.actionSubtitle}>Modify your rating and feedback</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#CCC" />
+              </TouchableOpacity>
+
+              <View style={styles.actionDivider} />
+
+              <TouchableOpacity 
+                style={styles.actionItem}
+                onPress={() => {
+                  setActionsModalVisible(false);
+                  handleDeleteReview(selectedReviewForActions.id);
+                }}
+              >
+                <View style={[styles.actionIconContainer, { backgroundColor: 'rgba(255, 68, 68, 0.1)' }]}>
+                  <Ionicons name="trash-bin" size={24} color="#FF4444" />
+                </View>
+                <View style={styles.actionTextContainer}>
+                  <Text style={[styles.actionTitle, { color: '#FF4444' }]}>Delete Review</Text>
+                  <Text style={styles.actionSubtitle}>Remove this review permanently</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#CCC" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
       </Modal>
     </View>
   );
@@ -540,5 +659,144 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
     marginTop: 0,
     zIndex: 2,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#FFF',
+    padding: 25,
+    borderRadius: 20,
+    alignItems: 'center',
+    width: '85%',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  modalIconContainer: {
+    backgroundColor: '#F8F8F8',
+    padding: 20,
+    borderRadius: 50,
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#2E593F',
+    marginBottom: 10,
+    fontFamily: 'OpenSans',
+  },
+  modalText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 25,
+    fontFamily: 'OpenSans',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 20,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginHorizontal: 5,
+    elevation: 3,
+  },
+  cancelButton: {
+    backgroundColor: '#E0E0E0',
+  },
+  deleteButton: {
+    backgroundColor: '#FF4444',
+  },
+  updateButton: {
+    backgroundColor: '#C2A868',
+  },
+  modalButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontFamily: 'OpenSans',
+  },
+  actionsButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  actionsModalContent: {
+    backgroundColor: '#FFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    width: '100%',
+    position: 'absolute',
+    bottom: 0,
+    paddingBottom: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  actionsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  actionsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2E593F',
+    fontFamily: 'OpenSans',
+  },
+  closeButton: {
+    padding: 5,
+  },
+  actionsList: {
+    padding: 20,
+  },
+  actionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 15,
+  },
+  actionIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+  actionTextContainer: {
+    flex: 1,
+  },
+  actionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    fontFamily: 'OpenSans',
+  },
+  actionSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 2,
+    fontFamily: 'OpenSans',
+  },
+  actionDivider: {
+    height: 1,
+    backgroundColor: '#F0F0F0',
+    marginVertical: 10,
   },
 });

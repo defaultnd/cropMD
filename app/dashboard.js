@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -7,15 +7,43 @@ import {
   Image,
   ScrollView,
   Modal,
-} from "react-native";
+  Animated} from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 
 const HomeScreen = () => {
   const router = useRouter();
-  const [language, setLanguage] = useState("EN");
+  const [selectedLang, setSelectedLang] = useState("EN");
+  const [currentLanguage, setCurrentLanguage] = useState("EN");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [showLanguageModal, setShowLanguageModal] = useState(false);
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  const toggleLanguageMenu = () => {
+    if (showLanguageMenu) {
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }).start(() => setShowLanguageMenu(false));
+    } else {
+      setShowLanguageMenu(true);
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }).start();
+    }
+  };
+
+  const handleLanguageSelect = (lang) => {
+    setSelectedLang(lang);
+  };
+
+  const handleSelectPress = () => {
+    setCurrentLanguage(selectedLang);
+    toggleLanguageMenu();
+  };
 
   return (
     <View style={styles.container}>
@@ -23,7 +51,7 @@ const HomeScreen = () => {
         {/* Header */}
         <TouchableOpacity
           style={styles.languageToggle}
-          onPress={() => setShowLanguageModal(true)}
+          onPress={toggleLanguageMenu}
         >
           <MaterialIcons name="g-translate" size={24} color="#FFF" />
         </TouchableOpacity>
@@ -31,12 +59,12 @@ const HomeScreen = () => {
         <View style={styles.headerContent}>
           <Image source={require("../assets/logo.png")} style={styles.logo} />
           <Text style={styles.headerTitle}>
-            {language === "EN"
+            {currentLanguage === "EN"
               ? "Guard Your Crops,"
               : "Bantayan ang Iyong Pananim,"}
           </Text>
           <Text style={styles.headerTitle}>
-            {language === "EN"
+            {currentLanguage === "EN"
               ? "Grow with Confidence!"
               : " Lumago nang May Kumpiyansa!"}
           </Text>
@@ -58,10 +86,10 @@ const HomeScreen = () => {
                 />
                 <View style={styles.cardRight}>
                   <Text style={styles.cardTitle}>
-                    {language === "EN" ? "Corn" : "Mais"}
+                    {currentLanguage === "EN" ? "Corn" : "Mais"}
                   </Text>
                   <Text style={styles.cardSubtitle}>
-                    {language === "EN"
+                    {currentLanguage === "EN"
                       ? "Capture image of a leaf to know more about your crop's condition"
                       : "Kuhanan ng larawan ang dahon upang malaman ang kalagayan ng iyong pananim"}
                   </Text>
@@ -83,10 +111,10 @@ const HomeScreen = () => {
                 />
                 <View style={styles.cardRight}>
                   <Text style={styles.cardTitle}>
-                    {language === "EN" ? "Rice" : "Palay"}
+                    {currentLanguage === "EN" ? "Rice" : "Palay"}
                   </Text>
                   <Text style={styles.cardSubtitle}>
-                    {language === "EN"
+                    {currentLanguage === "EN"
                       ? "Capture image of a leaf to know more about your crop's condition"
                       : "Kuhanan ng larawan ang dahon upang malaman ang kalagayan ng iyong pananim"}
                   </Text>
@@ -108,10 +136,10 @@ const HomeScreen = () => {
                 />
                 <View style={styles.cardRight}>
                   <Text style={styles.cardTitle}>
-                    {language === "EN" ? "Tomato" : "Kamatis"}
+                    {currentLanguage === "EN" ? "Tomato" : "Kamatis"}
                   </Text>
                   <Text style={styles.cardSubtitle}>
-                    {language === "EN"
+                    {currentLanguage === "EN"
                       ? "Capture image of a leaf to know more about your crop's condition"
                       : "Kuhanan ng larawan ang dahon upang malaman ang kalagayan ng iyong pananim"}
                   </Text>
@@ -130,7 +158,7 @@ const HomeScreen = () => {
         >
           <Ionicons name="time" size={24} color="#808080" />
           <Text style={styles.navText}>
-            {language === "EN" ? "History" : "Kasaysayan"}
+            {currentLanguage === "EN" ? "History" : "Kasaysayan"}
           </Text>
         </TouchableOpacity>
 
@@ -140,7 +168,7 @@ const HomeScreen = () => {
         >
           <Ionicons name="star" size={24} color="#808080" />
           <Text style={styles.navText}>
-            {language === "EN" ? "Ratings" : "Rating"}
+            {currentLanguage === "EN" ? "Ratings" : "Rating"}
           </Text>
         </TouchableOpacity>
 
@@ -150,7 +178,7 @@ const HomeScreen = () => {
         >
           <Ionicons name="information-circle" size={24} color="#808080" />
           <Text style={styles.navText}>
-            {language === "EN" ? "About" : "Tungkol"}
+            {currentLanguage === "EN" ? "About" : "Tungkol"}
           </Text>
         </TouchableOpacity>
 
@@ -160,7 +188,7 @@ const HomeScreen = () => {
         >
           <Ionicons name="log-out" size={24} color="#808080" />
           <Text style={styles.navText}>
-            {language === "EN" ? "Logout" : "Logout"}
+            {currentLanguage === "EN" ? "Logout" : "Logout"}
           </Text>
         </TouchableOpacity>
       </View>
@@ -173,30 +201,30 @@ const HomeScreen = () => {
         onRequestClose={() => setShowLogoutModal(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>
-              {language === "EN"
+          <View style={styles.logoutContainer}>
+            <Text style={styles.logoutTitle}>
+              {currentLanguage === "EN"
                 ? "Are you sure you want to logout?"
                 : "Sigurado ka bang gusto mong mag-logout?"}
             </Text>
-            <View style={styles.modalButtons}>
+            <View style={styles.logoutButtonsContainer}>
               <TouchableOpacity
-                style={[styles.modalButton, { backgroundColor: "#d4af37" }]}
+                style={[styles.logoutButton, { backgroundColor: "#d4af37" }]}
                 onPress={() => {
                   setShowLogoutModal(false);
                   router.replace("/login");
                 }}
               >
-                <Text style={styles.modalButtonText}>
-                  {language === "EN" ? "Yes" : "Oo"}
+                <Text style={styles.logoutButtonText}>
+                  {currentLanguage === "EN" ? "Yes" : "Oo"}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalButton, { backgroundColor: "#ccc" }]}
+                style={[styles.logoutButton, { backgroundColor: "#ccc" }]}
                 onPress={() => setShowLogoutModal(false)}
               >
-                <Text style={styles.modalButtonText}>
-                  {language === "EN" ? "No" : "Hindi"}
+                <Text style={styles.logoutButtonText}>
+                  {currentLanguage === "EN" ? "No" : "Hindi"}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -205,47 +233,67 @@ const HomeScreen = () => {
       </Modal>
 
       {/* Language Selection Modal */}
-      <Modal
+       <Modal
+        visible={showLanguageMenu}
         transparent={true}
         animationType="fade"
-        visible={showLanguageModal}
-        onRequestClose={() => setShowLanguageModal(false)}
+        onRequestClose={toggleLanguageMenu}
       >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContainer, { padding: 30 }]}>
-            <Text style={styles.modalTitle}>
-              Please select your preferred language
-            </Text>
-
-            <TouchableOpacity
-              style={styles.languageOption}
-              onPress={() => {
-                setLanguage("EN");
-                setShowLanguageModal(false);
-              }}
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1} 
+          onPress={toggleLanguageMenu}
+        >
+          <Animated.View 
+            style={[
+              styles.languageMenu,
+              { opacity: fadeAnim }
+            ]}
+          >
+            <Text style={styles.modalTitle}>Please select prefer language</Text>
+            
+            <TouchableOpacity 
+              style={[
+                styles.languageOption,
+                selectedLang === "EN" && styles.selectedLanguage
+              ]}
+              onPress={() => handleLanguageSelect("EN")}
             >
-              <Image
-                source={require("../assets/us.jpg")}
-                style={styles.flagIcon}
-              />
-              <Text style={styles.languageText}>English (US)</Text>
+              <View style={styles.languageOptionContent}>
+                <Image 
+                  source={require("../assets/us.jpg")} 
+                  style={styles.flagIcon}
+                />
+                <Text style={styles.languageOptionText}>English(US)</Text>
+              </View>
+            </TouchableOpacity>
+            
+            <View style={styles.divider} />
+            
+            <TouchableOpacity 
+              style={[
+                styles.languageOption,
+                selectedLang === "TL" && styles.selectedLanguage
+              ]}
+              onPress={() => handleLanguageSelect("TL")}
+            >
+              <View style={styles.languageOptionContent}>
+                <Image 
+                  source={require("../assets/ph.jpg")} 
+                  style={styles.flagIcon}
+                />
+                <Text style={styles.languageOptionText}>Tagalog(PH)</Text>
+              </View>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.languageOption}
-              onPress={() => {
-                setLanguage("TL");
-                setShowLanguageModal(false);
-              }}
+            <TouchableOpacity 
+              style={styles.selectButton}
+              onPress={handleSelectPress}
             >
-              <Image
-                source={require("../assets/ph.jpg")}
-                style={styles.flagIcon}
-              />
-              <Text style={styles.languageText}>Tagalog (PH)</Text>
+              <Text style={styles.selectButtonText}>Select</Text>
             </TouchableOpacity>
-          </View>
-        </View>
+          </Animated.View>
+        </TouchableOpacity>
       </Modal>
     </View>
   );
@@ -364,60 +412,129 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  modalContainer: {
-    backgroundColor: "#fff",
-    padding: 25,
+  languageMenu: {
+    backgroundColor: '#FFF',
     borderRadius: 20,
-    width: "80%",
-    alignItems: "center",
+    padding: 20,
+    width: '80%',
+    maxWidth: 300,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    borderColor: '#4CAF50',
+    borderWidth: 2,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-    color: "#333",
-  },
-  modalButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-  },
-  modalButton: {
-    flex: 1,
-    paddingVertical: 12,
-    marginHorizontal: 5,
-    borderRadius: 10,
-    alignItems: "center",
-  },
-  modalButtonText: {
-    color: "#fff",
     fontSize: 16,
-    fontWeight: "bold",
+    color: '#000',
+    textAlign: 'center',
+    marginBottom: 20,
   },
   languageOption: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    backgroundColor: "#f0f0f0",
+    padding: 10,
     borderRadius: 10,
-    width: "100%",
+  },
+  selectedLanguage: {
+    backgroundColor: 'rgba(194, 168, 104, 0.1)',
+  },
+  languageOptionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
   },
   flagIcon: {
     width: 40,
-    height: 30,
+    height: 40,
+    borderRadius: 20,
     marginRight: 15,
-    resizeMode: "cover",
-    borderRadius: 5,
   },
-  languageText: {
+  languageOptionText: {
     fontSize: 16,
-    fontWeight: "600",
+    color: '#333',
   },
+  divider: {
+    height: 1,
+    backgroundColor: '#E5E5E5',
+    marginVertical: 10,
+  },
+  selectButton: {
+    backgroundColor: '#FFF',
+    padding: 10,
+    borderRadius: 15,
+    alignItems: 'center',
+    marginTop: 20,
+    alignSelf: 'flex-end',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 10,
+  },
+  selectButtonText: {
+    color: '#000',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  headerContent: {
+    flexDirection: "column",
+    alignItems: "flex-start",
+  },
+  logoutContainer: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 20,
+    alignItems: 'center',
+    width: '80%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  logoutIcon: {
+    marginBottom: 10,
+  },
+  logoutTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  logoutMessage: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  logoutButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  logoutButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 20,
+    width: '45%',
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#E0E0E0',
+  },
+  confirmButton: {
+    backgroundColor: '#d4af37',
+  },
+  logoutButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  
+
 });
