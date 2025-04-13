@@ -19,6 +19,8 @@ const ResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleResetPassword = () => {
     setErrorMessage('');
@@ -82,10 +84,18 @@ const ResetPassword = () => {
               <TextInput 
                 placeholder="New Password" 
                 style={styles.input} 
-                secureTextEntry
+                secureTextEntry={!showNewPassword}
                 value={newPassword}
                 onChangeText={setNewPassword}
               />
+              <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)}>
+                <Ionicons 
+                  name={showNewPassword ? "eye-off-outline" : "eye-outline"} 
+                  size={24} 
+                  color="#888" 
+                  style={styles.eyeIcon}
+                />
+              </TouchableOpacity>
             </View>
 
             <View style={styles.inputContainer}>
@@ -93,10 +103,18 @@ const ResetPassword = () => {
               <TextInput 
                 placeholder="Confirm Password" 
                 style={styles.input} 
-                secureTextEntry
+                secureTextEntry={!showConfirmPassword}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
               />
+              <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                <Ionicons 
+                  name={showConfirmPassword ? "eye-off-outline" : "eye-outline"} 
+                  size={24} 
+                  color="#888" 
+                  style={styles.eyeIcon}
+                />
+              </TouchableOpacity>
             </View>
 
             <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
@@ -164,6 +182,9 @@ const styles = StyleSheet.create({
   },
   inputIcon: {
     marginRight: 10
+  },
+  eyeIcon: {
+    marginLeft: 10
   },
   input: {
     flex: 1,
