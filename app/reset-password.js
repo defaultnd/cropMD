@@ -31,8 +31,8 @@ const ResetPassword = () => {
       return;
     }
 
-    if (newPassword.length < 6) {
-      setErrorMessage('Password must be at least 6 characters long');
+    if (newPassword.length < 8) {
+      setErrorMessage('Password must be at least 8 characters long');
       return;
     }
 
@@ -121,7 +121,7 @@ const ResetPassword = () => {
               <Text style={styles.buttonText}>Reset Password</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => router.back()}>
+            <TouchableOpacity onPress={() => router.replace('/login')}>
               <Text style={styles.backText}>← Back to Login</Text>
             </TouchableOpacity>
           </View>
