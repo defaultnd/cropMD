@@ -25,6 +25,8 @@ const ResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleResetPassword = async () => {
     setErrorMessage('');
@@ -35,8 +37,8 @@ const ResetPassword = () => {
       return;
     }
 
-    if (new_password.length < 6) {
-      setErrorMessage('Password must be at least 6 characters long');
+    if (newPassword.length < 8) {
+      setErrorMessage('Password must be at least 8 characters long');
       return;
     }
 
@@ -160,32 +162,47 @@ const ResetPassword = () => {
                   <TextInput 
                     placeholder="New Password" 
                     style={styles.input} 
-                    secureTextEntry
+                    secureTextEntry={!showNewPassword}
                     value={new_password}
                     onChangeText={setNewPassword}
                   />
-                </View>
+                  <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)}>
+                <Ionicons 
+                  name={showNewPassword ? "eye-off-outline" : "eye-outline"} 
+                  size={24} 
+                  color="#888" 
+                  style={styles.eyeIcon}
+                />
+              </TouchableOpacity>
+            </View>
 
                 <View style={styles.inputContainer}>
                   <Ionicons name="lock-closed-outline" size={24} color="#888" style={styles.inputIcon} />
                   <TextInput 
                     placeholder="Confirm Password" 
                     style={styles.input} 
-                    secureTextEntry
+                    secureTextEntry={!showConfirmPassword}
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
                   />
-                </View>
+                  <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                <Ionicons 
+                  name={showConfirmPassword ? "eye-off-outline" : "eye-outline"} 
+                  size={24} 
+                  color="#888" 
+                  style={styles.eyeIcon}
+                />
+              </TouchableOpacity>
+            </View>
 
                 <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
                   <Text style={styles.buttonText}>Reset Password</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity onPress={() => router.back()}>
-                  <Text style={styles.backText}>← Back</Text>
-                </TouchableOpacity>
-              </View>
-            )}
+            <TouchableOpacity onPress={() => router.replace('/login')}>
+              <Text style={styles.backText}>← Back to Login</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </ImageBackground>
@@ -243,6 +260,9 @@ const styles = StyleSheet.create({
   },
   inputIcon: {
     marginRight: 10
+  },
+  eyeIcon: {
+    marginLeft: 10
   },
   input: {
     flex: 1,
