@@ -10,38 +10,81 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useGlobalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { use } from 'react';
+import axios from 'axios';
+import { REACT_AUTH_API_URL } from '@env';
 
 const ResetPassword = () => {
   const router = useRouter();
-  const [newPassword, setNewPassword] = useState('');
+  const { email } = useGlobalSearchParams();
+  const [new_password, setNewPassword] = useState('');
+  const [reset_code, setCode] = useState('');
+  const [isCodeSent, setIsCodeSent] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  const handleResetPassword = () => {
+  const handleResetPassword = async () => {
     setErrorMessage('');
     setSuccessMessage('');
 
-    if (!newPassword || !confirmPassword) {
+    if (!new_password || !confirmPassword) {
       setErrorMessage('Please fill in both fields');
       return;
     }
 
-    if (newPassword.length < 6) {
+    if (new_password.length < 6) {
       setErrorMessage('Password must be at least 6 characters long');
       return;
     }
 
-    if (newPassword !== confirmPassword) {
+    if (new_password !== confirmPassword) {
       setErrorMessage('Passwords do not match');
       return;
     }
 
-    setSuccessMessage('Your password has been reset successfully');
-    router.push('/login');
+    console.log('Resetting password for email:', email, 'with new password:', new_password);
+    try{
+      const response = await axios.post(`${REACT_AUTH_API_URL}reset-password`, { email, reset_code, new_password }, { headers: { 'Content-Type': 'application/json' } });
+      console.log('Response:', response.data);
+      if (response.status === 200) {
+        setSuccessMessage('Your password has been reset successfully');
+        router.push('/login');
+      }
+    } catch (error) {
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+        setErrorMessage(error.response.data.error || 'An error occurred. Please try again later.');
+      }
+    }
   };
+
+  const handleVerifyCode = async () => {
+      setErrorMessage('');
+      setSuccessMessage('');
+      
+      if (!reset_code) {
+        setErrorMessage('Please enter the verification code');
+        return;
+      }
+  
+      try {
+        const response = await axios.post(`${REACT_AUTH_API_URL}reset-password`, { email, reset_code, new_password }, { headers: { 'Content-Type': 'application/json' } });
+        console.log('Response:', response.data);
+        if (response.status === 200) {
+          setIsCodeSent(true);
+        }
+      } catch (error) {
+        if (error.response) {
+          console.error('Error response:', error.response.data);
+          setErrorMessage(error.response.data.error || 'An error occurred. Please try again later.');
+        } else {
+          setErrorMessage('Network error. Please check your connection and try again.');
+      }
+      }
+    };
 
   return (
     <ImageBackground
@@ -58,55 +101,91 @@ const ResetPassword = () => {
           <View style={styles.logoContainer}>
             <Image source={require('../assets/logo.png')} style={styles.logo} />
           </View>
+          
+          {!isCodeSent ? (
+              <View style={styles.formSection}>
+                <Text style={styles.title}>Enter Code</Text>
+                <Text style={styles.subtitle}>Check your email for the code</Text>
 
-          {/* Form Section */}
-          <View style={styles.formSection}>
-            <Text style={styles.title}>Reset Password</Text>
-            <Text style={styles.subtitle}>Enter your new password</Text>
+                {errorMessage ? (
+                  <View style={styles.alertContainer}>
+                    <Ionicons name="alert-circle" size={20} color="#fff" />
+                    <Text style={styles.errorText}>{errorMessage}</Text>
+                  </View>
+                ) : null}
+                {successMessage ? (
+                  <View style={[styles.alertContainer, styles.successContainer]}>
+                    <Ionicons name="checkmark-circle" size={20} color="#fff" />
+                    <Text style={styles.successText}>{successMessage}</Text>
+                  </View>
+                ) : null}
 
-            {errorMessage ? (
-              <View style={styles.alertContainer}>
-                <Ionicons name="alert-circle" size={20} color="#fff" />
-                <Text style={styles.errorText}>{errorMessage}</Text>
+                <TextInput
+                  style={styles.inputCode}
+                  placeholder="Enter Code"
+                  placeholderTextColor="#888"
+                  keyboardType="numeric"
+                  value={reset_code}
+                  onChangeText={setCode}
+                />
+
+                <TouchableOpacity style={styles.buttonCode} onPress={handleVerifyCode}>
+                  <Text style={styles.buttonText}>Verify Code</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={() => router.back()}>
+                  <Text style={styles.backText}>← Back</Text>
+                </TouchableOpacity>
               </View>
-            ) : null}
-            {successMessage ? (
-              <View style={[styles.alertContainer, styles.successContainer]}>
-                <Ionicons name="checkmark-circle" size={20} color="#fff" />
-                <Text style={styles.successText}>{successMessage}</Text>
+            ) : (
+              <View style={styles.formSection}>
+                <Text style={styles.title}>Reset Password</Text>
+                <Text style={styles.subtitle}>Enter your new password</Text>
+
+                {errorMessage ? (
+                  <View style={styles.alertContainer}>
+                    <Ionicons name="alert-circle" size={20} color="#fff" />
+                    <Text style={styles.errorText}>{errorMessage}</Text>
+                  </View>
+                ) : null}
+                {successMessage ? (
+                  <View style={[styles.alertContainer, styles.successContainer]}>
+                    <Ionicons name="checkmark-circle" size={20} color="#fff" />
+                    <Text style={styles.successText}>{successMessage}</Text>
+                  </View>
+                ) : null}
+
+                <View style={styles.inputContainer}>
+                  <Ionicons name="lock-closed-outline" size={24} color="#888" style={styles.inputIcon} />
+                  <TextInput 
+                    placeholder="New Password" 
+                    style={styles.input} 
+                    secureTextEntry
+                    value={new_password}
+                    onChangeText={setNewPassword}
+                  />
+                </View>
+
+                <View style={styles.inputContainer}>
+                  <Ionicons name="lock-closed-outline" size={24} color="#888" style={styles.inputIcon} />
+                  <TextInput 
+                    placeholder="Confirm Password" 
+                    style={styles.input} 
+                    secureTextEntry
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                  />
+                </View>
+
+                <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
+                  <Text style={styles.buttonText}>Reset Password</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={() => router.back()}>
+                  <Text style={styles.backText}>← Back</Text>
+                </TouchableOpacity>
               </View>
-            ) : null}
-
-            <View style={styles.inputContainer}>
-              <Ionicons name="lock-closed-outline" size={24} color="#888" style={styles.inputIcon} />
-              <TextInput 
-                placeholder="New Password" 
-                style={styles.input} 
-                secureTextEntry
-                value={newPassword}
-                onChangeText={setNewPassword}
-              />
-            </View>
-
-            <View style={styles.inputContainer}>
-              <Ionicons name="lock-closed-outline" size={24} color="#888" style={styles.inputIcon} />
-              <TextInput 
-                placeholder="Confirm Password" 
-                style={styles.input} 
-                secureTextEntry
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-              />
-            </View>
-
-            <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
-              <Text style={styles.buttonText}>Reset Password</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => router.back()}>
-              <Text style={styles.backText}>← Back to Login</Text>
-            </TouchableOpacity>
-          </View>
+            )}
         </View>
       </KeyboardAvoidingView>
     </ImageBackground>
@@ -170,6 +249,16 @@ const styles = StyleSheet.create({
     height: '100%',
     color: '#000'
   },
+  inputCode: {
+    width: '100%',
+    height: 50,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    backgroundColor: '#fff',
+    marginBottom: 20
+  },
   button: {
     backgroundColor: '#c4a23f',
     paddingVertical: 14,
@@ -182,6 +271,14 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16
+  },
+  buttonCode: {
+    backgroundColor: '#c4a23f',
+    paddingVertical: 14,
+    borderRadius: 12,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 15
   },
   backText: {
     color: '#b88a00',

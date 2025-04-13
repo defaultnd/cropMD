@@ -12,16 +12,17 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
+import { REACT_AUTH_API_URL } from '@env';
+
 
 const ForgotPassword = () => {
   const router = useRouter();
   const [email, setEmail] = useState('');
-  const [isCodeSent, setIsCodeSent] = useState(false);
-  const [code, setCode] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  const handleSendCode = () => {
+  const handleSendCode = async () => {
     setErrorMessage('');
     setSuccessMessage('');
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -31,33 +32,26 @@ const ForgotPassword = () => {
       return;
     }
 
-    // Mock: check if email exists (in real case, query your backend)
-    // if (email !== 'user@gmail.com') {
-    //   setErrorMessage('No account associated with this email');
-    //   return;
-    // }
-
-    setIsCodeSent(true);
-    setSuccessMessage('Verification code has been sent to your email');
-  };
-
-  const handleVerifyCode = () => {
     setErrorMessage('');
     setSuccessMessage('');
-    
-    if (!code) {
-      setErrorMessage('Please enter the verification code');
-      return;
-    }
 
-    // Optional: mock correct code check
-    if (code !== '123456') {
-      setErrorMessage('The code you entered is incorrect');
-      return;
+    try{
+      const response = await axios.post(`${REACT_AUTH_API_URL}forgot-password`, {email}, { headers: { 'Content-Type': 'application/json' }, });
+      console.log('Response:', response.data);
+      if (response.status === 200) {
+        setSuccessMessage('Verification code has been sent to your email');
+        setErrorMessage('');
+        router.push({ pathname: 'reset-password', params: { email } });
+      } 
+      // else {
+      //   setErrorMessage('Failed to send password reset instructions. Please try again later.');
+      // }
+    } catch (error) {
+      if (error.response) {
+        setSuccessMessage('');
+        setErrorMessage(error.response.data.message || 'An error occurred. Please try again later.');
+      }
     }
-
-    setSuccessMessage('Code verified successfully');
-    router.push('/reset-password');
   };
 
   return (
@@ -78,7 +72,6 @@ const ForgotPassword = () => {
 
           {/* Form Section */}
           <View style={styles.formSection}>
-            {!isCodeSent ? (
               <>
                 <Text style={styles.title}>Reset Password</Text>
                 <Text style={styles.subtitle}>
@@ -111,38 +104,6 @@ const ForgotPassword = () => {
                   <Text style={styles.buttonText}>Send Verification Code</Text>
                 </TouchableOpacity>
               </>
-            ) : (
-              <>
-                <Text style={styles.title}>Enter Code</Text>
-                <Text style={styles.subtitle}>Check your email for the code</Text>
-
-                {errorMessage ? (
-                  <View style={styles.alertContainer}>
-                    <Ionicons name="alert-circle" size={20} color="#fff" />
-                    <Text style={styles.errorText}>{errorMessage}</Text>
-                  </View>
-                ) : null}
-                {successMessage ? (
-                  <View style={[styles.alertContainer, styles.successContainer]}>
-                    <Ionicons name="checkmark-circle" size={20} color="#fff" />
-                    <Text style={styles.successText}>{successMessage}</Text>
-                  </View>
-                ) : null}
-
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter Code"
-                  placeholderTextColor="#888"
-                  keyboardType="numeric"
-                  value={code}
-                  onChangeText={setCode}
-                />
-
-                <TouchableOpacity style={styles.button} onPress={handleVerifyCode}>
-                  <Text style={styles.buttonText}>Verify Code</Text>
-                </TouchableOpacity>
-              </>
-            )}
 
             <TouchableOpacity onPress={() => router.back()}>
               <Text style={styles.backText}>← Back to Login</Text>

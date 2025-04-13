@@ -10,6 +10,10 @@ import {
   Animated} from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import axios from "axios";
+import { REACT_AUTH_API_URL } from "@env";
+import * as SecureStore from "expo-secure-store";
+
 
 const HomeScreen = () => {
   const router = useRouter();
@@ -44,6 +48,17 @@ const HomeScreen = () => {
     setCurrentLanguage(selectedLang);
     toggleLanguageMenu();
   };
+
+  const handleLogout = async () => {
+    const response = await axios.post(`${REACT_AUTH_API_URL}logout`);
+    if (response.status === 200) {
+      await SecureStore.deleteItemAsync('user');
+      await SecureStore.deleteItemAsync('token');      
+      setShowLogoutModal(false);
+      router.replace("/login");
+    }
+
+  }
 
   return (
     <View style={styles.container}>
@@ -210,10 +225,7 @@ const HomeScreen = () => {
             <View style={styles.logoutButtonsContainer}>
               <TouchableOpacity
                 style={[styles.logoutButton, { backgroundColor: "#d4af37" }]}
-                onPress={() => {
-                  setShowLogoutModal(false);
-                  router.replace("/login");
-                }}
+                onPress={handleLogout}
               >
                 <Text style={styles.logoutButtonText}>
                   {currentLanguage === "EN" ? "Yes" : "Oo"}

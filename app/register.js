@@ -11,11 +11,15 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import axios from "axios";
+import * as SecureStore from "expo-secure-store";
+import { REACT_AUTH_API_URL } from "@env";
+
 
 const Register = () => {
   const router = useRouter();
   const [form, setForm] = useState({
-    fullname: "",
+    name: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -40,7 +44,7 @@ const Register = () => {
     return password.length >= 8;
   };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (!form.fullname || !form.email || !form.password || !form.confirmPassword) {
       setError("All fields are required");
       return;
@@ -61,19 +65,28 @@ const Register = () => {
       return;
     }
 
-    // Uncomment if you want to enforce terms acceptance
-    // if (!termsChecked) {
-    //   setError("You must agree to the terms");
-    //   return;
-    // }
+    const { confirmPassword, ...filteredFormData} = form;
+    console.log("Filtered Form Data:", filteredFormData);
 
-    setShowSuccess(true);
+    try{
+      const response = await axios.post(`${REACT_AUTH_API_URL}register`,
+        filteredFormData, { headers: { 'Content-Type': 'application/json', }, });
+      if (response && response.status === 201) {
+        setShowSuccess(true);
+      }
+    } catch (error) {
+      if (error.response) {
+        setError(error.response.data.error || "Registration failed. Please try again.");
+      } else {
+        setError("Network error. Please try again later.");
+      }
+    }
   };
 
   const handleSuccessClose = () => {
     setShowSuccess(false);
-    router.replace("/login");
-  };
+    router.push("/login");
+  }
 
   return (
     <ImageBackground source={require('../assets/bg.jpg')} style={styles.container}>
@@ -97,7 +110,7 @@ const Register = () => {
           <TextInput
             placeholder="Full Name"
             style={styles.input}
-            onChangeText={(text) => handleChange("fullname", text)}
+            onChangeText={(text) => handleChange("name", text)}
           />
         </View>
 

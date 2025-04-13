@@ -2,18 +2,25 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useState, useRef } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, Image, Alert, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useGlobalSearchParams } from 'expo-router';
 import * as MediaLibrary from 'expo-media-library';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const MAX_TRANSLATE_Y = -SCREEN_HEIGHT + 50;
+import axios from 'axios';
+import { REACT_PRE_API_URL } from '@env';
+import * as SecureStore from 'expo-secure-store';
+import * as ImageManipulator from 'expo-image-manipulator';
+
+
 
 export default function App() {
   const [facing] = useState('back');
   const [permission, requestPermission] = useCameraPermissions();
   const [photoUri, setPhotoUri] = useState(null);
+  const { crop } = useGlobalSearchParams();
   const cameraRef = useRef(null);
   const router = useRouter();
   const translateY = useSharedValue(0);
@@ -82,6 +89,80 @@ export default function App() {
       Alert.alert('Error', 'Failed to save photo.');
     }
   }
+
+  // const takePicture = async () => {
+  //   if (cameraRef.current) {
+  //     try {
+  //       const photo = await cameraRef.current.takePictureAsync();
+  //       console.log("Photo captured:", photo.uri);
+  //       setPhotoUri(photo.uri);
+  //       translateY.value = withSpring(-SCREEN_HEIGHT / 2, { damping: 50 });
+  //       await uploadImage(photo.uri, crop);
+  //     } catch (error) {
+  //       console.error("Failed to capture photo:", error.message);
+  //       Alert.alert('Error', 'Failed to capture photo.');
+  //     }
+  //   }
+  // };
+
+  // const resizeImage = async (photoUri) => {
+  //   const resizedImage = await ImageManipulator.manipulateAsync(
+  //     photoUri,
+  //     [{ resize: { width: 800, height: 600 } }], 
+  //     { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+  //   );
+  //   console.log("Resized image URI:", resizedImage.uri);
+  //   return resizedImage.uri;
+  // };
+  
+
+  // const uploadImage = async (photoUri, cropType) => {
+  //   const formData = new FormData();
+  //   const resizedUri = await resizeImage(photoUri);
+  //   formData.append("image", {
+  //     uri: resizedUri, 
+  //     name: "captured_image.jpg", 
+  //     type: "image/jpeg", 
+  //   });
+  //   formData.append("crop_type", cropType);
+
+  //   console.log("Form Data:", formData);
+
+  //   // try {
+  //   //   const response = await axios.post(
+  //   //     `${REACT_PRE_API_URL}upload`, formData,
+  //   //     {
+  //   //       headers: {
+  //   //         Authorization: `Bearer ${await SecureStore.getItemAsync("token")}`, // Include token for protected endpoints
+  //   //         "Content-Type": "multipart/form-data", // Correct content type
+  //   //       },
+  //   //     }
+  //   //   );
+
+  //   //   console.log("Image uploaded successfully:", response.data);
+  //   //   Alert.alert("Success", "Image uploaded successfully!");
+  //   // } catch (error) {
+  //   //   console.error("Error uploading image:", error.response?.data || error.message);
+  //   //   Alert.alert("Error", error.response?.data?.error || "Failed to upload image.");
+  //   // }
+  // };
+
+
+
+  // async function savePhotoToGallery(uri) {
+  //   const { status } = await MediaLibrary.requestPermissionsAsync();
+  //   if (status !== 'granted') {
+  //     Alert.alert('Permission Required', 'Storage permission is required to save photos.');
+  //     return;
+  //   }
+
+  //   try {
+  //     await MediaLibrary.saveToLibraryAsync(uri);
+  //     Alert.alert('Success', 'Photo saved to gallery.');
+  //   } catch (error) {
+  //     Alert.alert('Error', 'Failed to save photo.');
+  //   }
+  // }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

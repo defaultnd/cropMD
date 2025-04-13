@@ -11,10 +11,13 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import axios from 'axios';
+import { REACT_AUTH_API_URL } from '@env';
+import * as SecureStore from 'expo-secure-store';
 
 const Login = () => {
   const router = useRouter();
-  const [form, setForm] = useState({ identifier: '', password: '' });
+  const [form, setForm] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -24,22 +27,22 @@ const Login = () => {
     setErrorMessage('');
   };
 
-  const validateIdentifier = (identifier) => {
+  const validateIdentifier = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(identifier);
+    return emailRegex.test(email);
   };
 
   const validatePassword = (password) => {
     return password.length >= 8;
   };
 
-  const handleLogin = () => {
-    if (!form.identifier || !form.password) {
+  const handleLogin = async () => {
+    if (!form.email || !form.password) {
       setErrorMessage('Please fill in all fields.');
       return;
     }
 
-    if (!validateIdentifier(form.identifier)) {
+    if (!validateIdentifier(form.email)) {
       setErrorMessage('Please enter a valid email address.');
       return;
     }
@@ -49,14 +52,26 @@ const Login = () => {
       return;
     }
 
-    setErrorMessage('');
-    setIsLoading(true);
+    try {
+      const response =  await axios.post(`${REACT_AUTH_API_URL}login`, form, { headers: { 'Content-Type': 'application/json', }, });
 
-    // Simulate login request
-    setTimeout(() => {
-      setIsLoading(false);
-      router.push('/dashboard');
-    }, 2000);
+      setErrorMessage('');
+      setIsLoading(true);
+
+      if (response.status === 200) {
+        await SecureStore.setItemAsync('user', String(response.data.user_id));
+        await SecureStore.setItemAsync('token', String(response.data.access_token));
+        setTimeout(() => {
+          setIsLoading(false);
+          router.push('/dashboard');
+        }, 2000);
+      }
+    } catch (error) {
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+        setErrorMessage(error.response.data.error || 'Login failed. Please try again.');
+      }
+    }
   };
 
   return (
@@ -86,7 +101,7 @@ const Login = () => {
             placeholder="Email"
             style={styles.input}
             autoCapitalize="none"
-            onChangeText={(text) => handleChange('identifier', text)}
+            onChangeText={(text) => handleChange('email', text)}
           />
         </View>
 
