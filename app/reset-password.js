@@ -203,6 +203,7 @@ const ResetPassword = () => {
               <Text style={styles.backText}>← Back to Login</Text>
             </TouchableOpacity>
           </View>
+          )}
         </View>
       </KeyboardAvoidingView>
     </ImageBackground>
