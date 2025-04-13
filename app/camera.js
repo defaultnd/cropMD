@@ -147,23 +147,6 @@ export default function App() {
   //   // }
   // };
 
-
-
-  // async function savePhotoToGallery(uri) {
-  //   const { status } = await MediaLibrary.requestPermissionsAsync();
-  //   if (status !== 'granted') {
-  //     Alert.alert('Permission Required', 'Storage permission is required to save photos.');
-  //     return;
-  //   }
-
-  //   try {
-  //     await MediaLibrary.saveToLibraryAsync(uri);
-  //     Alert.alert('Success', 'Photo saved to gallery.');
-  //   } catch (error) {
-  //     Alert.alert('Error', 'Failed to save photo.');
-  //   }
-  // }
-
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={styles.container}>
